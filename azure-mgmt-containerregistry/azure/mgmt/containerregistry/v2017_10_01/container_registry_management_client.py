@@ -17,10 +17,6 @@ from .operations.registries_operations import RegistriesOperations
 from .operations.operations import Operations
 from .operations.replications_operations import ReplicationsOperations
 from .operations.webhooks_operations import WebhooksOperations
-from .operations.build_definitions_operations import BuildDefinitionsOperations
-from .operations.builds_operations import BuildsOperations
-from .operations.build_steps_operations import BuildStepsOperations
-from .operations.build_triggers_operations import BuildTriggersOperations
 from . import models
 
 
@@ -34,20 +30,16 @@ class ContainerRegistryManagementClientConfiguration(AzureConfiguration):
      object<msrestazure.azure_active_directory>`
     :param subscription_id: The Microsoft Azure subscription ID.
     :type subscription_id: str
-    :param subscription_id1: The Microsoft Azure subscription ID.
-    :type subscription_id1: str
     :param str base_url: Service URL
     """
 
     def __init__(
-            self, credentials, subscription_id, subscription_id1, base_url=None):
+            self, credentials, subscription_id, base_url=None):
 
         if credentials is None:
             raise ValueError("Parameter 'credentials' must not be None.")
         if subscription_id is None:
             raise ValueError("Parameter 'subscription_id' must not be None.")
-        if subscription_id1 is None:
-            raise ValueError("Parameter 'subscription_id1' must not be None.")
         if not base_url:
             base_url = 'https://management.azure.com'
 
@@ -58,7 +50,6 @@ class ContainerRegistryManagementClientConfiguration(AzureConfiguration):
 
         self.credentials = credentials
         self.subscription_id = subscription_id
-        self.subscription_id1 = subscription_id1
 
 
 class ContainerRegistryManagementClient(object):
@@ -75,32 +66,23 @@ class ContainerRegistryManagementClient(object):
     :vartype replications: azure.mgmt.containerregistry.v2017_10_01.operations.ReplicationsOperations
     :ivar webhooks: Webhooks operations
     :vartype webhooks: azure.mgmt.containerregistry.v2017_10_01.operations.WebhooksOperations
-    :ivar build_definitions: BuildDefinitions operations
-    :vartype build_definitions: azure.mgmt.containerregistry.v2017_10_01.operations.BuildDefinitionsOperations
-    :ivar builds: Builds operations
-    :vartype builds: azure.mgmt.containerregistry.v2017_10_01.operations.BuildsOperations
-    :ivar build_steps: BuildSteps operations
-    :vartype build_steps: azure.mgmt.containerregistry.v2017_10_01.operations.BuildStepsOperations
-    :ivar build_triggers: BuildTriggers operations
-    :vartype build_triggers: azure.mgmt.containerregistry.v2017_10_01.operations.BuildTriggersOperations
 
     :param credentials: Credentials needed for the client to connect to Azure.
     :type credentials: :mod:`A msrestazure Credentials
      object<msrestazure.azure_active_directory>`
     :param subscription_id: The Microsoft Azure subscription ID.
     :type subscription_id: str
-    :param subscription_id1: The Microsoft Azure subscription ID.
-    :type subscription_id1: str
     :param str base_url: Service URL
     """
 
     def __init__(
-            self, credentials, subscription_id, subscription_id1, base_url=None):
+            self, credentials, subscription_id, base_url=None):
 
-        self.config = ContainerRegistryManagementClientConfiguration(credentials, subscription_id, subscription_id1, base_url)
+        self.config = ContainerRegistryManagementClientConfiguration(credentials, subscription_id, base_url)
         self._client = ServiceClient(self.config.credentials, self.config)
 
         client_models = {k: v for k, v in models.__dict__.items() if isinstance(v, type)}
+        self.api_version = '2017-10-01'
         self._serialize = Serializer(client_models)
         self._deserialize = Deserializer(client_models)
 
@@ -111,12 +93,4 @@ class ContainerRegistryManagementClient(object):
         self.replications = ReplicationsOperations(
             self._client, self.config, self._serialize, self._deserialize)
         self.webhooks = WebhooksOperations(
-            self._client, self.config, self._serialize, self._deserialize)
-        self.build_definitions = BuildDefinitionsOperations(
-            self._client, self.config, self._serialize, self._deserialize)
-        self.builds = BuildsOperations(
-            self._client, self.config, self._serialize, self._deserialize)
-        self.build_steps = BuildStepsOperations(
-            self._client, self.config, self._serialize, self._deserialize)
-        self.build_triggers = BuildTriggersOperations(
             self._client, self.config, self._serialize, self._deserialize)

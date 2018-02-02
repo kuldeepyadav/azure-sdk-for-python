@@ -13,18 +13,10 @@ from .registries_operations import RegistriesOperations
 from .operations import Operations
 from .replications_operations import ReplicationsOperations
 from .webhooks_operations import WebhooksOperations
-from .build_definitions_operations import BuildDefinitionsOperations
-from .builds_operations import BuildsOperations
-from .build_steps_operations import BuildStepsOperations
-from .build_triggers_operations import BuildTriggersOperations
 
 __all__ = [
     'RegistriesOperations',
     'Operations',
     'ReplicationsOperations',
     'WebhooksOperations',
-    'BuildDefinitionsOperations',
-    'BuildsOperations',
-    'BuildStepsOperations',
-    'BuildTriggersOperations',
 ]
