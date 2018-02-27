@@ -86,3 +86,9 @@ class JsonWebKeySignatureAlgorithm(Enum):
     es384 = "ES384"
     es512 = "ES512"
     ecdsa256 = "ECDSA256"
+
+
+class SasTokenType(Enum):
+
+    account = "account"
+    service = "service"

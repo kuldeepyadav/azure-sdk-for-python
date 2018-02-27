@@ -9,12 +9,12 @@
 # regenerated.
 # --------------------------------------------------------------------------
 
-from msrest.serialization import Model
+from .sas_definition_bundle import SasDefinitionBundle
 
 
-class SasDefinitionBundle(Model):
-    """A SAS definition bundle consists of key vault SAS definition details plus
-    its attributes.
+class DeletedSasDefinitionBundle(SasDefinitionBundle):
+    """A deleted SAS definition bundle consisting of its previous id, attributes
+    and its tags, as well as information on when it will be purged.
 
     Variables are only populated by the server, and will be ignored when
     sending a request.
@@ -37,6 +37,14 @@ class SasDefinitionBundle(Model):
     :vartype attributes: ~azure.keyvault.models.SasDefinitionAttributes
     :ivar tags: Application specific metadata in the form of key-value pairs
     :vartype tags: dict[str, str]
+    :param recovery_id: The url of the recovery object, used to identify and
+     recover the deleted SAS definition.
+    :type recovery_id: str
+    :ivar scheduled_purge_date: The time when the SAS definition is scheduled
+     to be purged, in UTC
+    :vartype scheduled_purge_date: datetime
+    :ivar deleted_date: The time when the SAS definition was deleted, in UTC
+    :vartype deleted_date: datetime
     """
 
     _validation = {
@@ -47,6 +55,8 @@ class SasDefinitionBundle(Model):
         'validity_period': {'readonly': True},
         'attributes': {'readonly': True},
         'tags': {'readonly': True},
+        'scheduled_purge_date': {'readonly': True},
+        'deleted_date': {'readonly': True},
     }
 
     _attribute_map = {
@@ -57,14 +67,13 @@ class SasDefinitionBundle(Model):
         'validity_period': {'key': 'validityPeriod', 'type': 'str'},
         'attributes': {'key': 'attributes', 'type': 'SasDefinitionAttributes'},
         'tags': {'key': 'tags', 'type': '{str}'},
+        'recovery_id': {'key': 'recoveryId', 'type': 'str'},
+        'scheduled_purge_date': {'key': 'scheduledPurgeDate', 'type': 'unix-time'},
+        'deleted_date': {'key': 'deletedDate', 'type': 'unix-time'},
     }
 
-    def __init__(self):
-        super(SasDefinitionBundle, self).__init__()
-        self.id = None
-        self.secret_id = None
-        self.template_uri = None
-        self.sas_type = None
-        self.validity_period = None
-        self.attributes = None
-        self.tags = None
+    def __init__(self, recovery_id=None):
+        super(DeletedSasDefinitionBundle, self).__init__()
+        self.recovery_id = recovery_id
+        self.scheduled_purge_date = None
+        self.deleted_date = None

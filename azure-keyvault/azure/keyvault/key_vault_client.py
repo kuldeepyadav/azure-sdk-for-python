@@ -61,7 +61,7 @@ class KeyVaultClient(object):
         self._client = ServiceClient(self.config.credentials, self.config)
 
         client_models = {k: v for k, v in models.__dict__.items() if isinstance(v, type)}
-        self.api_version = '2016-10-01'
+        self.api_version = '7.0-preview'
         self._serialize = Serializer(client_models)
         self._deserialize = Deserializer(client_models)
 
@@ -2410,7 +2410,7 @@ class KeyVaultClient(object):
     restore_secret.metadata = {'url': '/secrets/restore'}
 
     def get_certificates(
-            self, vault_base_url, maxresults=None, custom_headers=None, raw=False, **operation_config):
+            self, vault_base_url, maxresults=None, include_pending=None, custom_headers=None, raw=False, **operation_config):
         """List certificates in a specified key vault.
 
         The GetCertificates operation returns the set of certificates resources
@@ -2423,6 +2423,9 @@ class KeyVaultClient(object):
         :param maxresults: Maximum number of results to return in a page. If
          not specified the service will return up to 25 results.
         :type maxresults: int
+        :param include_pending: Specifies whether to include certificates
+         which are not completely provisioned.
+        :type include_pending: bool
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -2448,6 +2451,8 @@ class KeyVaultClient(object):
                 query_parameters = {}
                 if maxresults is not None:
                     query_parameters['maxresults'] = self._serialize.query("maxresults", maxresults, 'int', maximum=25, minimum=1)
+                if include_pending is not None:
+                    query_parameters['includePending'] = self._serialize.query("include_pending", include_pending, 'bool')
                 query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
 
             else:
@@ -3930,7 +3935,7 @@ class KeyVaultClient(object):
     merge_certificate.metadata = {'url': '/certificates/{certificate-name}/pending/merge'}
 
     def get_deleted_certificates(
-            self, vault_base_url, maxresults=None, custom_headers=None, raw=False, **operation_config):
+            self, vault_base_url, maxresults=None, include_pending=None, custom_headers=None, raw=False, **operation_config):
         """Lists the deleted certificates in the specified vault currently
         available for recovery.
 
@@ -3946,6 +3951,9 @@ class KeyVaultClient(object):
         :param maxresults: Maximum number of results to return in a page. If
          not specified the service will return up to 25 results.
         :type maxresults: int
+        :param include_pending: Specifies whether to include certificates
+         which are not completely provisioned.
+        :type include_pending: bool
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -3971,6 +3979,8 @@ class KeyVaultClient(object):
                 query_parameters = {}
                 if maxresults is not None:
                     query_parameters['maxresults'] = self._serialize.query("maxresults", maxresults, 'int', maximum=25, minimum=1)
+                if include_pending is not None:
+                    query_parameters['includePending'] = self._serialize.query("include_pending", include_pending, 'bool')
                 query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
 
             else:
@@ -4273,6 +4283,404 @@ class KeyVaultClient(object):
         return deserialized
     get_storage_accounts.metadata = {'url': '/storage'}
 
+    def get_deleted_storage_accounts(
+            self, vault_base_url, maxresults=None, custom_headers=None, raw=False, **operation_config):
+        """Lists deleted storage accounts for the specified vault.
+
+        The Get Deleted Storage Accounts operation returns the storage accounts
+        that have been deleted for a vault enabled for soft-delete. This
+        operation requires the storage/list permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param maxresults: Maximum number of results to return in a page. If
+         not specified the service will return up to 25 results.
+        :type maxresults: int
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: An iterator like instance of DeletedStorageAccountItem
+        :rtype:
+         ~azure.keyvault.models.DeletedStorageAccountItemPaged[~azure.keyvault.models.DeletedStorageAccountItem]
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        def internal_paging(next_link=None, raw=False):
+
+            if not next_link:
+                # Construct URL
+                url = self.get_deleted_storage_accounts.metadata['url']
+                path_format_arguments = {
+                    'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True)
+                }
+                url = self._client.format_url(url, **path_format_arguments)
+
+                # Construct parameters
+                query_parameters = {}
+                if maxresults is not None:
+                    query_parameters['maxresults'] = self._serialize.query("maxresults", maxresults, 'int', maximum=25, minimum=1)
+                query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+            else:
+                url = next_link
+                query_parameters = {}
+
+            # Construct headers
+            header_parameters = {}
+            header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+            if self.config.generate_client_request_id:
+                header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+            if custom_headers:
+                header_parameters.update(custom_headers)
+            if self.config.accept_language is not None:
+                header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+            # Construct and send request
+            request = self._client.get(url, query_parameters)
+            response = self._client.send(
+                request, header_parameters, stream=False, **operation_config)
+
+            if response.status_code not in [200]:
+                raise models.KeyVaultErrorException(self._deserialize, response)
+
+            return response
+
+        # Deserialize response
+        deserialized = models.DeletedStorageAccountItemPaged(internal_paging, self._deserialize.dependencies)
+
+        if raw:
+            header_dict = {}
+            client_raw_response = models.DeletedStorageAccountItemPaged(internal_paging, self._deserialize.dependencies, header_dict)
+            return client_raw_response
+
+        return deserialized
+    get_deleted_storage_accounts.metadata = {'url': '/deletedstorage'}
+
+    def get_deleted_storage_account(
+            self, vault_base_url, storage_account_name, custom_headers=None, raw=False, **operation_config):
+        """Gets the specified deleted storage account.
+
+        The Get Deleted Storage Account operation returns the specified deleted
+        storage account along with its attributes. This operation requires the
+        storage/get permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: DeletedStorageBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.DeletedStorageBundle or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        # Construct URL
+        url = self.get_deleted_storage_account.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+            'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str', pattern=r'^[0-9a-zA-Z]+$')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct and send request
+        request = self._client.get(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('DeletedStorageBundle', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    get_deleted_storage_account.metadata = {'url': '/deletedstorage/{storage-account-name}'}
+
+    def purge_deleted_storge_account(
+            self, vault_base_url, storage_account_name, custom_headers=None, raw=False, **operation_config):
+        """Permanently deletes the specified storage account.
+
+        The purge deleted storage account operation removes the secret
+        permanently, without the possibility of recovery. This operation can
+        only be performed on a soft-delete enabled vault. This operation
+        requires the storage/purge permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        # Construct URL
+        url = self.purge_deleted_storge_account.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+            'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str', pattern=r'^[0-9a-zA-Z]+$')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct and send request
+        request = self._client.delete(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [204]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    purge_deleted_storge_account.metadata = {'url': '/deletedstorage/{storage-account-name}'}
+
+    def recover_deleted_storage_account(
+            self, vault_base_url, storage_account_name, custom_headers=None, raw=False, **operation_config):
+        """Recovers the deleted storage account.
+
+        Recovers the deleted storage account in the specified vault. This
+        operation can only be performed on a soft-delete enabled vault. This
+        operation requires the storage/recover permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: StorageBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.StorageBundle or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        # Construct URL
+        url = self.recover_deleted_storage_account.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+            'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str', pattern=r'^[0-9a-zA-Z]+$')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('StorageBundle', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    recover_deleted_storage_account.metadata = {'url': '/deletedstorage/{storage-account-name}/recover'}
+
+    def backup_storage_account(
+            self, vault_base_url, storage_account_name, custom_headers=None, raw=False, **operation_config):
+        """Backs up the specified storage account.
+
+        Requests that a backup of the specified storage account be downloaded
+        to the client. This operation requires the storage/backup permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: BackupStorageResult or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.BackupStorageResult or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        # Construct URL
+        url = self.backup_storage_account.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+            'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('BackupStorageResult', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    backup_storage_account.metadata = {'url': '/storage/{storage-account-name}/backup'}
+
+    def restore_storage_account(
+            self, vault_base_url, storage_bundle_backup, custom_headers=None, raw=False, **operation_config):
+        """Restores a backed up storage account to a vault.
+
+        Restores a backed up storage account to a vault. This operation
+        requires the storage/restore permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_bundle_backup: The backup blob associated with a
+         storage account.
+        :type storage_bundle_backup: bytes
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: StorageBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.StorageBundle or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        parameters = models.StorageRestoreParameters(storage_bundle_backup=storage_bundle_backup)
+
+        # Construct URL
+        url = self.restore_storage_account.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True)
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct body
+        body_content = self._serialize.body(parameters, 'StorageRestoreParameters')
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(
+            request, header_parameters, body_content, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('StorageBundle', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    restore_storage_account.metadata = {'url': '/storage/restore'}
+
     def delete_storage_account(
             self, vault_base_url, storage_account_name, custom_headers=None, raw=False, **operation_config):
         """Deletes a storage account. This operation requires the storage/delete
@@ -4288,8 +4696,8 @@ class KeyVaultClient(object):
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: StorageBundle or ClientRawResponse if raw=true
-        :rtype: ~azure.keyvault.models.StorageBundle or
+        :return: DeletedStorageBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.DeletedStorageBundle or
          ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
@@ -4326,7 +4734,7 @@ class KeyVaultClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('StorageBundle', response)
+            deserialized = self._deserialize('DeletedStorageBundle', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -4711,6 +5119,222 @@ class KeyVaultClient(object):
         return deserialized
     get_sas_definitions.metadata = {'url': '/storage/{storage-account-name}/sas'}
 
+    def get_deleted_sas_definitions(
+            self, vault_base_url, storage_account_name, maxresults=None, custom_headers=None, raw=False, **operation_config):
+        """Lists deleted SAS definitions for the specified vault and storage
+        account.
+
+        The Get Deleted Sas Definitions operation returns the SAS definitions
+        that have been deleted for a vault enabled for soft-delete. This
+        operation requires the storage/listsas permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param maxresults: Maximum number of results to return in a page. If
+         not specified the service will return up to 25 results.
+        :type maxresults: int
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: An iterator like instance of DeletedSasDefinitionItem
+        :rtype:
+         ~azure.keyvault.models.DeletedSasDefinitionItemPaged[~azure.keyvault.models.DeletedSasDefinitionItem]
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        def internal_paging(next_link=None, raw=False):
+
+            if not next_link:
+                # Construct URL
+                url = self.get_deleted_sas_definitions.metadata['url']
+                path_format_arguments = {
+                    'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+                    'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str', pattern=r'^[0-9a-zA-Z]+$')
+                }
+                url = self._client.format_url(url, **path_format_arguments)
+
+                # Construct parameters
+                query_parameters = {}
+                if maxresults is not None:
+                    query_parameters['maxresults'] = self._serialize.query("maxresults", maxresults, 'int', maximum=25, minimum=1)
+                query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+            else:
+                url = next_link
+                query_parameters = {}
+
+            # Construct headers
+            header_parameters = {}
+            header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+            if self.config.generate_client_request_id:
+                header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+            if custom_headers:
+                header_parameters.update(custom_headers)
+            if self.config.accept_language is not None:
+                header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+            # Construct and send request
+            request = self._client.get(url, query_parameters)
+            response = self._client.send(
+                request, header_parameters, stream=False, **operation_config)
+
+            if response.status_code not in [200]:
+                raise models.KeyVaultErrorException(self._deserialize, response)
+
+            return response
+
+        # Deserialize response
+        deserialized = models.DeletedSasDefinitionItemPaged(internal_paging, self._deserialize.dependencies)
+
+        if raw:
+            header_dict = {}
+            client_raw_response = models.DeletedSasDefinitionItemPaged(internal_paging, self._deserialize.dependencies, header_dict)
+            return client_raw_response
+
+        return deserialized
+    get_deleted_sas_definitions.metadata = {'url': '/deletedstorage/{storage-account-name}/sas'}
+
+    def get_deleted_sas_definition(
+            self, vault_base_url, storage_account_name, sas_definition_name, custom_headers=None, raw=False, **operation_config):
+        """Gets the specified deleted sas definition.
+
+        The Get Deleted SAS Definition operation returns the specified deleted
+        SAS definition along with its attributes. This operation requires the
+        storage/getsas permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param sas_definition_name: The name of the SAS definition.
+        :type sas_definition_name: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: DeletedSasDefinitionBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.DeletedSasDefinitionBundle or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        # Construct URL
+        url = self.get_deleted_sas_definition.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+            'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str', pattern=r'^[0-9a-zA-Z]+$'),
+            'sas-definition-name': self._serialize.url("sas_definition_name", sas_definition_name, 'str', pattern=r'^[0-9a-zA-Z]+$')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct and send request
+        request = self._client.get(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('DeletedSasDefinitionBundle', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    get_deleted_sas_definition.metadata = {'url': '/deletedstorage/{storage-account-name}/sas/{sas-definition-name}'}
+
+    def recover_deleted_sas_definition(
+            self, vault_base_url, storage_account_name, sas_definition_name, custom_headers=None, raw=False, **operation_config):
+        """Recovers the deleted SAS definition.
+
+        Recovers the deleted SAS definition for the specified storage account.
+        This operation can only be performed on a soft-delete enabled vault.
+        This operation requires the storage/recover permission.
+
+        :param vault_base_url: The vault name, for example
+         https://myvault.vault.azure.net.
+        :type vault_base_url: str
+        :param storage_account_name: The name of the storage account.
+        :type storage_account_name: str
+        :param sas_definition_name: The name of the SAS definition.
+        :type sas_definition_name: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: SasDefinitionBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.SasDefinitionBundle or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
+        """
+        # Construct URL
+        url = self.recover_deleted_sas_definition.metadata['url']
+        path_format_arguments = {
+            'vaultBaseUrl': self._serialize.url("vault_base_url", vault_base_url, 'str', skip_quote=True),
+            'storage-account-name': self._serialize.url("storage_account_name", storage_account_name, 'str', pattern=r'^[0-9a-zA-Z]+$'),
+            'sas-definition-name': self._serialize.url("sas_definition_name", sas_definition_name, 'str', pattern=r'^[0-9a-zA-Z]+$')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        query_parameters['api-version'] = self._serialize.query("self.api_version", self.api_version, 'str')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if self.config.generate_client_request_id:
+            header_parameters['x-ms-client-request-id'] = str(uuid.uuid1())
+        if custom_headers:
+            header_parameters.update(custom_headers)
+        if self.config.accept_language is not None:
+            header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise models.KeyVaultErrorException(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('SasDefinitionBundle', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    recover_deleted_sas_definition.metadata = {'url': '/deletedstorage/{storage-account-name}/sas/{sas-definition-name}/recover'}
+
     def delete_sas_definition(
             self, vault_base_url, storage_account_name, sas_definition_name, custom_headers=None, raw=False, **operation_config):
         """Deletes a SAS definition from a specified storage account. This
@@ -4728,8 +5352,8 @@ class KeyVaultClient(object):
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: SasDefinitionBundle or ClientRawResponse if raw=true
-        :rtype: ~azure.keyvault.models.SasDefinitionBundle or
+        :return: DeletedSasDefinitionBundle or ClientRawResponse if raw=true
+        :rtype: ~azure.keyvault.models.DeletedSasDefinitionBundle or
          ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
@@ -4767,7 +5391,7 @@ class KeyVaultClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('SasDefinitionBundle', response)
+            deserialized = self._deserialize('DeletedSasDefinitionBundle', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -4842,7 +5466,7 @@ class KeyVaultClient(object):
     get_sas_definition.metadata = {'url': '/storage/{storage-account-name}/sas/{sas-definition-name}'}
 
     def set_sas_definition(
-            self, vault_base_url, storage_account_name, sas_definition_name, parameters, sas_definition_attributes=None, tags=None, custom_headers=None, raw=False, **operation_config):
+            self, vault_base_url, storage_account_name, sas_definition_name, template_uri, sas_type, validity_period, sas_definition_attributes=None, tags=None, custom_headers=None, raw=False, **operation_config):
         """Creates or updates a new SAS definition for the specified storage
         account. This operation requires the storage/setsas permission.
 
@@ -4853,9 +5477,16 @@ class KeyVaultClient(object):
         :type storage_account_name: str
         :param sas_definition_name: The name of the SAS definition.
         :type sas_definition_name: str
-        :param parameters: Sas definition creation metadata in the form of
-         key-value pairs.
-        :type parameters: dict[str, str]
+        :param template_uri: The SAS definition token template signed with an
+         arbitrary key.  Tokens created according to the SAS definition will
+         have the same properties as the template.
+        :type template_uri: str
+        :param sas_type: The type of SAS token the SAS definition will create.
+         Possible values include: 'account', 'service'
+        :type sas_type: str or ~azure.keyvault.models.SasTokenType
+        :param validity_period: The validity period of SAS tokens created
+         according to the SAS definition.
+        :type validity_period: str
         :param sas_definition_attributes: The attributes of the SAS
          definition.
         :type sas_definition_attributes:
@@ -4874,7 +5505,7 @@ class KeyVaultClient(object):
         :raises:
          :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
         """
-        parameters1 = models.SasDefinitionCreateParameters(parameters=parameters, sas_definition_attributes=sas_definition_attributes, tags=tags)
+        parameters = models.SasDefinitionCreateParameters(template_uri=template_uri, sas_type=sas_type, validity_period=validity_period, sas_definition_attributes=sas_definition_attributes, tags=tags)
 
         # Construct URL
         url = self.set_sas_definition.metadata['url']
@@ -4900,7 +5531,7 @@ class KeyVaultClient(object):
             header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
 
         # Construct body
-        body_content = self._serialize.body(parameters1, 'SasDefinitionCreateParameters')
+        body_content = self._serialize.body(parameters, 'SasDefinitionCreateParameters')
 
         # Construct and send request
         request = self._client.put(url, query_parameters)
@@ -4923,7 +5554,7 @@ class KeyVaultClient(object):
     set_sas_definition.metadata = {'url': '/storage/{storage-account-name}/sas/{sas-definition-name}'}
 
     def update_sas_definition(
-            self, vault_base_url, storage_account_name, sas_definition_name, parameters=None, sas_definition_attributes=None, tags=None, custom_headers=None, raw=False, **operation_config):
+            self, vault_base_url, storage_account_name, sas_definition_name, template_uri=None, sas_type=None, validity_period=None, sas_definition_attributes=None, tags=None, custom_headers=None, raw=False, **operation_config):
         """Updates the specified attributes associated with the given SAS
         definition. This operation requires the storage/setsas permission.
 
@@ -4934,9 +5565,16 @@ class KeyVaultClient(object):
         :type storage_account_name: str
         :param sas_definition_name: The name of the SAS definition.
         :type sas_definition_name: str
-        :param parameters: Sas definition update metadata in the form of
-         key-value pairs.
-        :type parameters: dict[str, str]
+        :param template_uri: The SAS definition token template signed with an
+         arbitrary key.  Tokens created according to the SAS definition will
+         have the same properties as the template.
+        :type template_uri: str
+        :param sas_type: The type of SAS token the SAS definition will create.
+         Possible values include: 'account', 'service'
+        :type sas_type: str or ~azure.keyvault.models.SasTokenType
+        :param validity_period: The validity period of SAS tokens created
+         according to the SAS definition.
+        :type validity_period: str
         :param sas_definition_attributes: The attributes of the SAS
          definition.
         :type sas_definition_attributes:
@@ -4955,7 +5593,7 @@ class KeyVaultClient(object):
         :raises:
          :class:`KeyVaultErrorException<azure.keyvault.models.KeyVaultErrorException>`
         """
-        parameters1 = models.SasDefinitionUpdateParameters(parameters=parameters, sas_definition_attributes=sas_definition_attributes, tags=tags)
+        parameters = models.SasDefinitionUpdateParameters(template_uri=template_uri, sas_type=sas_type, validity_period=validity_period, sas_definition_attributes=sas_definition_attributes, tags=tags)
 
         # Construct URL
         url = self.update_sas_definition.metadata['url']
@@ -4981,7 +5619,7 @@ class KeyVaultClient(object):
             header_parameters['accept-language'] = self._serialize.header("self.config.accept_language", self.config.accept_language, 'str')
 
         # Construct body
-        body_content = self._serialize.body(parameters1, 'SasDefinitionUpdateParameters')
+        body_content = self._serialize.body(parameters, 'SasDefinitionUpdateParameters')
 
         # Construct and send request
         request = self._client.patch(url, query_parameters)
